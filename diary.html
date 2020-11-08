@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <!--
+      Copyright (C) 2020 Andrew Sayers
+      See LICENSE.txt for license information.
+    -->
+  <head>
+    <meta charset="UTF-8">
+    <title>Sleep diary</title>
+    <link rel="stylesheet" href="diary.css">
+  </head>
+  <body>
+    <form>
+      <div id="day-night-wrapper">
+        <div class="day-night"><img id="day" src="Breathe-weather-clear.svg"><div id="day-time">&nbsp;</div></div>
+        <div class="day-night"><img id="night" src="Breathe-weather-clear-night.svg"><div id="night-time">&nbsp;</div></div>
+      </div>
+      <div id="message"></div>
+      <input type="hidden" id="username">
+      <input type="hidden" id="time">
+      <input type="hidden" id="now">
+      <div id="guidance" style="display:none">
+        <hr>
+        <table>
+          <caption style="font-size:5vw">Suggestions</caption>
+          <thead>
+            <tr><td>Bed time<td># sleeps<td>Day length</tr>
+          </thead>
+          <tbody id="time-list"></tbody>
+        </table>
+        <div style="font-size:3vw">
+          Bed times are calculated from your most recent bed time.<br>
+          Always make sure to get enough sleep.<br>
+          These suggestions are just a guide.
+        </div>
+        <hr>
+      </div>
+    </form>
+    <a id="tools" href="tools.html">Tools</a>
+    <script src="utils.js"></script>
+    <script src="diary.js"></script>
+  </body>
+</html>

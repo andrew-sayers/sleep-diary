@@ -1,0 +1,93 @@
+/*
+ * Copyright (C) 2020 Andrew Sayers
+ * See LICENSE.txt for license information.
+ */
+
+/*
+ * Style the background and icons:
+ */
+
+body {
+    text-align: center;
+    transition: 1s;
+    font-size: 6vw;
+}
+
+#day-night-wrapper {
+    max-height: 100vh;
+}
+
+@media (orientation: landscape) {
+    .day-night {
+        display: inline-block;
+    }
+    img {
+        width: 45vw;
+        max-width: 45vw;
+        max-height: 45vw;
+    }
+}
+
+@media (orientation: portrait) {
+    img {
+        display: inline-block;
+        height: 40vh;
+        max-width: 100vw;
+        max-height: 100vw;
+    }
+}
+
+.night #day {
+    /* I find the sun icon a bit too bright in night mode */
+    opacity: 0.5;
+}
+
+#day,#night {
+    cursor:pointer;
+}
+
+/*
+ * Style the "tools" button:
+ */
+
+a {
+    font-size: 4vw;
+    color: black;
+}
+
+.night a {
+    color: #88f;
+}
+
+/*
+ * Style the guidance for waking up at a specific date/time:
+ */
+
+#guidance {
+    margin-top: 4vh;
+    font-size: 6vw;
+}
+
+table {
+    margin: auto;
+}
+
+thead {
+    font-style: italic;
+}
+
+td {
+    padding: 0 1vw;
+}
+
+/*
+ * Change the background in day/night mode:
+ */
+
+.day {
+   background: #fea;
+}
+.night {
+   background: #32a;
+   color: white;
+}

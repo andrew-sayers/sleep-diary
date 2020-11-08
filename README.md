@@ -1,37 +1,39 @@
-## Welcome to GitHub Pages
+# Non-24 sleep diary
 
-You can use the [editor on GitHub](https://github.com/andrew-sayers/sleep-diary.github.io/edit/main/README.md) to maintain and preview the content for your website in Markdown files.
+A web-based sleep diary, with some extra features to help manage [non-24 sleep-wake disorder](https://en.wikipedia.org/wiki/Non-24-hour_sleep%E2%80%93wake_disorder).
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+# Quick start
 
-### Markdown
+[Click here to go to the diary](diary.html)
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+Press the _sun_ icon when you wake up in the morning
 
-```markdown
-Syntax highlighted code block
+Press the _moon_ icon when you go to sleep at night
 
-# Header 1
-## Header 2
-### Header 3
+Click on _Tools_ at the bottom for more options
 
-- Bulleted
-- List
+By default, your data is only stored in your browser.  Your data will be not be available in other browsers, and will be deleted if you clear this site's data.
 
-1. Numbered
-2. List
+Most browsers require you to allow cookies in order for this site to work.  This site actually uses [web storage](https://en.wikipedia.org/wiki/Web_storage), which is a more private alternative to cookies.  We also use third-party code that may set cookies, but these third-party cookies can be safely blocked.
 
-**Bold** and _Italic_ and `Code` text
+# Information for developers
 
-[Link](url) and ![Image](src)
-```
+This site is designed to manage common use cases, but you may need to adapt it for your personal use case.  You can download the repository and run it on any web server, or fork it on GitHub and run it there.
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+## Alternative usernames
 
-### Jekyll Themes
+It can be useful to develop features as a test user, in case you accidentally break your actual sleep diary data.  To use a different username, just add <tt>?username=...</tt> to URLs.  For example, [click here to go to the diary as user <tt>test</tt>](diary.html?username=test).
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/andrew-sayers/sleep-diary.github.io/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+## Logging data to a server
 
-### Support or Contact
+If you want to send data a web server you control, click on <tt>Tools</tt> at the bottom of the diary page, then select <tt>Configure</tt>, <tt>Save events to a server</tt> and enter a URL.  Requests will regularly be sent to <tt>&lt;your-url&gt;?username=&lt;username&gt;&log=&lt;events&gt;</tt>.  Requests will usually be sent as soon as the button is pressed, but might be delayed if the device is having connectivity issues.  The server can send any response (even <tt>404 not found</tt>).
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+Log messages are sent in a compact text format.  See [cook-data.js](cook-data.js) for information about how to parse this data.  In fact, it's recommended to convert log files to JSON by calling <tt>cook-data.js</tt> from a [NodeJS](https://nodejs.org/) script.  You can then process the data in your preferred language.
+
+If you don't want to write a server-side script to handle messages, you can just enter a non-existent URL and read requests from the server's access log.
+
+See [example-log-reader.js](example-log-reader.js) for an example script that reads from an access log and parses data using <tt>cook-data.js</tt>.
+
+# Legal information
+
+See [LICENSE.txt](LICENSE.txt) for license information.  The _sun_ and _moon_ icons are taken from [Breathe-weather-clear.svg](https://commons.wikimedia.org/wiki/File:Breathe-weather-clear.svg) and [Breathe-weather-clear-night.svg](https://commons.wikimedia.org/wiki/File:Breathe-weather-clear-night.svg) on Wikimedia Commons.

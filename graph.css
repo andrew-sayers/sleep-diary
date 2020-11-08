@@ -1,0 +1,74 @@
+/*
+ * Copyright (C) 2020 Andrew Sayers
+ * See LICENSE.txt for license information.
+ */
+
+body {
+	margin: 1.2em 0 0 0;
+	padding: 0;
+}
+
+/*
+ * COMMON
+ */
+
+.hours {
+    width: 100%;
+    text-align-last: justify;
+    position: fixed;
+    height: 1em;
+    margin-bottom: 20px;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    background: white;
+    box-shadow: 0 0 2px 2px white;
+    font-size: 2.5vw;
+}
+
+.day {
+        background: #bb3;
+}
+
+.sleep {
+        background: #38b;
+}
+
+.missing-wake {
+    background: linear-gradient(to right, #38b, #8cf);
+}
+
+.missing-sleep {
+    background: linear-gradient(to left, #38b, #8cf);
+}
+
+
+/*
+ * DIARY PLOT
+ */
+
+.diary-plot .sleep {
+    position: absolute;
+    height: 0.9em;
+    border-radius: 0.5em;
+    margin-bottom: 1px;
+}
+
+.diary-plot .continues-tomorrow {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.diary-plot .since-yesterday {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+
+/*
+ * DAY LENGTH PLOT
+ */
+
+.day-length-plot div {
+        height: 4px;
+}

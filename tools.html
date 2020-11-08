@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+    <!--
+         Copyright (C) 2020 Andrew Sayers
+         See LICENSE.txt for license information.
+    -->
+    <head>
+        <meta charset="UTF-8">
+        <link href="//fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+        <link href="//cdn.jsdelivr.net/npm/@mdi/font@4.x/css/materialdesignicons.min.css" rel="stylesheet">
+        <link href="//cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.css" rel="stylesheet">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+        <title>Sleep diary - tools</title>
+    </head>
+    <body>
+        <div id="app-container">
+            <v-app>
+                <v-main>
+                    <v-container>
+                        <v-expansion-panels
+                            v-model="panel"
+                        >
+
+                            <v-expansion-panel>
+                                <v-expansion-panel-header>Download your data</v-expansion-panel-header>
+                                <v-expansion-panel-content style="text-align:justify;text-align-last:justify">
+                                    <v-radio-group v-model="download_format">
+                                        <v-radio
+                                            label="Download Excel-compatible CSV"
+                                            value="csv"
+                                        ></v-radio>
+                                        <v-radio
+                                            label="Download JSON"
+                                            value="json"
+                                        ></v-radio>
+                                    </v-radio-group>
+                                    <v-radio-group v-model="download_type">
+                                        <v-radio
+                                            label="Group data by sleeps"
+                                            value="sleeps"
+                                        ></v-radio>
+                                        <v-radio
+                                            label="Raw event data"
+                                            value="raw"
+                                        ></v-radio>
+                                    </v-radio-group>
+                                    <v-btn
+                                        style="width:100%"
+                                        :download="download_filename+'.'+download_format"
+                                        :href="download_data"
+                                    ><v-icon>mdi-download</v-icon>
+                                        Download
+                                    </v-btn>
+                                </v-expansion-panel-content>
+                            </v-expansion-panel>
+
+                            <v-expansion-panel>
+                                <v-expansion-panel-header>View graph</v-expansion-panel-header>
+                                <v-expansion-panel-content>
+                                    <p>Click to download, or see <a :href="'graph.html?username='+username">the&nbsp;online&nbsp;graph</a></p>
+                                    <a :download="download_filename+'.png'" :href="download_image"><canvas width="48" height="1" ref="canvas"></canvas></a>
+                                </v-expansion-panel-content>
+                            </v-expansion-panel>
+
+                            <v-expansion-panel>
+                                <v-expansion-panel-header>Configure</v-expansion-panel-header>
+                                <v-expansion-panel-content>
+
+                                    <v-checkbox
+                                        v-model="server_active"
+                                        label="Save events to a server"
+                                        hide-details
+                                    ></v-checkbox>
+                                    <div v-if="server_active">
+                                        <v-text-field
+                                            label="Address"
+                                            placeholder="https://www.example.com/"
+                                            v-model="server_url"
+                                        ></v-text-field>
+                                    </div>
+                                    <v-checkbox
+                                        v-model="target_active"
+                                        label="Provide guidance for waking up at a specific time on a specific day"
+                                    ></v-checkbox>
+                                    <div v-if="target_active">
+
+                                        <v-text-field
+                                            label="How long is your average day?"
+                                            v-model="day_length"
+                                            :rules="[v=>/^[1-9][0-9]*:[0-5]?[0-9]$/.test(v)]"
+                                        ></v-text-field>
+
+                                        <v-menu
+                                            ref="date_menu"
+                                            v-model="date_menu"
+                                            :close-on-content-click="false"
+                                            :return-value.sync="target_date"
+                                            transition="scale-transition"
+                                            offset-y
+                                            max-width="290px"
+                                            min-width="290px"
+                                        >
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-text-field
+                                                    v-model="target_date"
+                                                    label="What day are you aiming for?"
+                                                    readonly
+                                                    v-bind="attrs"
+                                                    v-on="on"
+                                                ></v-text-field>
+                                            </template>
+                                            <v-date-picker
+                                                v-model="target_date"
+                                                no-title
+                                                @change="$refs.date_menu.save(target_date)"
+                                            >
+                                            </v-date-picker>
+                                        </v-menu>
+
+                                        <v-menu
+                                            ref="time_menu"
+                                            v-model="time_menu"
+                                            :close-on-content-click="false"
+                                            :return-value.sync="target_time"
+                                            transition="scale-transition"
+                                            offset-y
+                                            max-width="290px"
+                                            min-width="290px"
+                                        >
+                                            <template v-slot:activator="{ on, attrs }">
+                                                <v-text-field
+                                                    v-model="target_time"
+                                                    label="What time do you want to wake up on that day?"
+                                                    readonly
+                                                    v-bind="attrs"
+                                                    v-on="on"
+                                                ></v-text-field>
+                                            </template>
+                                            <v-time-picker
+                                                v-if="time_menu"
+                                                v-model="target_time"
+                                                no-title
+                                                full-width
+                                                @click:minute="$refs.time_menu.save(target_time)"
+                                            >
+                                            </v-time-picker>
+                                        </v-menu>
+                                    </div>
+                                    <p><em>Saving to a server</em> means that all your button presses will be sent to the server you specify.  Whoever runs that server will be notified when you wake up or go to sleep, so be very careful if someone you don't know asks you to use this feature.</p>
+                                    <p><em>Guidance</em> is useful for people with an average day length different to 24 hours.  Say you need to wake up at 9am on December 25th, but you're currently on target to wake up at 3pm that day.  Should you go to bed early until Christmas, or push forward instead?  Guidance suggests an early and late bed time tonight, plus the number of sleeps and average day lengths you would need to aim for.</p>
+
+                                </v-expansion-panel-content>
+
+                            </v-expansion-panel>
+
+                        </v-expansion-panels>
+                    </v-container>
+                </v-main>
+            </v-app>
+        </div>
+
+        <script src="//cdn.jsdelivr.net/npm/vue@2.x/dist/vue.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.min.js"></script>
+        <script src="cook-data.js"></script>
+        <script src="utils.js"></script>
+        <script>
+
+         new Vue({
+
+             el: '#app-container',
+
+             vuetify: new Vuetify(),
+
+             data: {
+
+                 panel: 0,
+
+                 server_active: server_active,
+                 server_url: server_url,
+
+                 target_active: target_active,
+                 date_menu: false,
+                 time_menu: false,
+                 day_length: format_duration(day_length),
+                 target_date: format_date(target_timestamp),
+                 target_time: format_time(target_timestamp),
+
+                 download_filename: 'Sleep diary (' + format_date(start_time) + ' ' + format_time(start_time).replace(':','') + ')',
+                 download_format: 'csv',
+                 download_type: 'sleeps',
+
+             },
+
+             computed: {
+                 canvas_data() {
+                     var sleep_diary = [];
+                     cook_data
+                         .to_sleeps(localStorage.getItem('name:'+username)||'')
+                         .forEach( sleep => {
+                             if ( sleep.sleep ) sleep_diary.push(sleep.sleep);
+                             if ( sleep.wake  ) sleep_diary.push(sleep.wake );
+                         });
+                     if ( sleep_diary.length ) {
+                         var initial_timestamp = new Date(sleep_diary[0].now),
+                             final_timestamp = new Date(sleep_diary[sleep_diary.length-1].now),
+                             canvas_start = new Date([
+                                 initial_timestamp.getMonth()+1,
+                                 initial_timestamp.getDate(),
+                                 initial_timestamp.getFullYear()
+                             ].join('/') + ' 00:00').getTime(),
+                             canvas_end = new Date([
+                                 final_timestamp.getMonth()+1,
+                                 final_timestamp.getDate(),
+                                 final_timestamp.getFullYear()
+                             ].join('/') + ' 23:59').getTime() + 60000,
+                             canvas_data = new ImageData(48, Math.ceil( ( canvas_end - canvas_start ) / (48*30*60*1000) ) ),
+                             canvas_write_point = 0,
+                             brush = [ 0, 0, 0, 0 ]
+                         ;
+                         sleep_diary.forEach( entry => {
+                             while ( canvas_start < entry.now-(30*60*1000) ) {
+                                 canvas_data.data[canvas_write_point++] = brush[0];
+                                 canvas_data.data[canvas_write_point++] = brush[1];
+                                 canvas_data.data[canvas_write_point++] = brush[2];
+                                 canvas_data.data[canvas_write_point++] = brush[3];
+                                 canvas_start += 30*60*1000;
+                             }
+                             if ( canvas_start < entry.now ) {
+                                 canvas_data.data[canvas_write_point++] = 127;
+                                 canvas_data.data[canvas_write_point++] = 127;
+                                 canvas_data.data[canvas_write_point++] = 127;
+                                 canvas_data.data[canvas_write_point++] = 255;
+                                 canvas_start += 30*60*1000;
+                             }
+                             // colours resemble day/night colours in index.css:
+                             brush = ( entry.time == 'day' ) ? [ 0xff, 0xee, 0xaa, 255 ] : [ 0x33, 0x22, 0xaa, 255 ];
+                         });
+                         return canvas_data;
+                     } else {
+                         return new ImageData(48, 1);
+                     }
+                 },
+                 download_image() {
+                     var canvas = document.createElement('CANVAS');
+                     canvas.setAttribute( 'width' , this.canvas_data.width  );
+                     canvas.setAttribute( 'height', this.canvas_data.height );
+                     canvas.getContext('2d').putImageData( this.canvas_data, 0, 0 );
+                     return canvas.toDataURL('image/png')
+                 },
+                 download_data() {
+                     var data_str = localStorage.getItem('name:'+username)||'';
+                     if ( this.download_format == 'json' ) {
+                         return 'data:application/json;base64,' + btoa(JSON.stringify(
+                             ( this.download_type == 'sleeps' )
+                             ? cook_data.to_sleeps(data_str)
+                             : cook_data.parse    (data_str)
+                         ));
+                     } else {
+                         return 'data:text/csv;base64,' + btoa(
+                             ( this.download_type == 'sleeps' )
+                             ? 'sleep time,wake time\n' +
+                               cook_data
+                                 .to_sleeps(data_str)
+                                 .map(
+                                     sleep => [
+                                         sleep.sleep_time||'',
+                                         sleep.wake_time ||''
+                                     ].join(',') + "\n"
+                                 )
+                                 .join('')
+                             :  'now,time,target\n' +
+                                cook_data
+                                 .parse(data_str)
+                                 .map(
+                                     event =>
+                                         [ 'now', 'time', 'target' ]
+                                             .map( key => event[key]||'' )
+                                             .join(",") + "\n"
+                                 )
+                                 .join('')
+                         );
+                     }
+                 },
+             },
+
+             watch: {
+                 day_length() {
+                     var day_length = this.day_length.split(':');
+                     localStorage.setItem('value ' + username + ':day-length',(parseInt(day_length[0],10)*60+parseInt(day_length[1],10))*60000);
+                 },
+
+                 target_active() {
+                     if ( this.target_active ) {
+                         localStorage.setItem('value ' + username + ':target-active', 1);
+                     } else {
+                         localStorage.removeItem('value ' + username + ':target-active');
+                     }
+                 },
+                 target_date() {
+                     localStorage.setItem('value ' + username + ':target-timestamp', new Date( this.target_date + ' ' + this.target_time ).getTime());
+                 },
+                 target_time() {
+                     localStorage.setItem('value ' + username + ':target-timestamp', new Date( this.target_date + ' ' + this.target_time ).getTime());
+                 },
+
+                 server_active() {
+                     if ( this.server_active ) {
+                         localStorage.setItem('value ' + username + ':server-active', 1);
+                     } else {
+                         localStorage.removeItem('value ' + username + ':server-active');
+                     }
+                 },
+                 server_url() {
+                     localStorage.setItem('value ' + username + ':server-url',this.server_url);
+                 },
+
+                 panel() {
+                     if ( this.panel == 1 ) {
+                         this.$refs.canvas.setAttribute( 'height', this.canvas_data.height );
+                         this.$refs.canvas.getContext('2d').putImageData( this.canvas_data, 0, 0 );
+                     }
+                 },
+
+             },
+
+         });
+        </script>
+        <style>
+         .v-main__wrap { margin: auto 10% }
+         /*
+          * Firefox and Chrome both support "image-rendering",
+          * but swap the meanings of "pixelated" and "crisp-edges"
+          */
+         canvas {
+             width: 100%;
+             image-rendering: pixelated;
+         }
+         @-moz-document url-prefix() {
+             canvas {
+                 image-rendering: crisp-edges;
+             }
+         }
+        </style>
+    </body>
+</html>

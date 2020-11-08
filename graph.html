@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!--
+      Copyright (C) 2020 Andrew Sayers
+      See LICENSE.txt for license information.
+    -->
+  <head>
+    <meta charset="utf-8">
+    <title>Sleep diary - online graph</title>
+    <link rel="stylesheet" type="text/css" href="graph.css">
+  </head>
+  <body>
+    <script src="utils.js"></script>
+    <script src="cook-data.js"></script>
+    <script src="graph.js"></script>
+    <script>document.body.innerHTML = diary_plot(cook_data.to_sleeps(localStorage.getItem('name:'+username)||''))</script>
+  </body>
+</html>
