@@ -37,8 +37,13 @@ body {
     }
 }
 
+.night #night {
+    /* I find the moon icon a bit too bright in night mode */
+    opacity: 0.9;
+}
+
 .night #day {
-    /* I find the sun icon a bit too bright in night mode */
+    /* I find the sun icon too bright in night mode */
     opacity: 0.5;
 }
 
