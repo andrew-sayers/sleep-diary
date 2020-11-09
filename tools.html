@@ -22,9 +22,13 @@
                         >
 
                             <v-expansion-panel>
-                                <v-expansion-panel-header>Download your data</v-expansion-panel-header>
-                                <v-expansion-panel-content style="text-align:justify;text-align-last:justify">
+                                <v-expansion-panel-header>Manage your data</v-expansion-panel-header>
+                                <v-expansion-panel-content>
                                     <v-radio-group v-model="download_format">
+                                        <v-radio
+                                            label="Download a backup"
+                                            value="backup.json"
+                                        ></v-radio>
                                         <v-radio
                                             label="Download Excel-compatible CSV"
                                             value="csv"
@@ -34,7 +38,7 @@
                                             value="json"
                                         ></v-radio>
                                     </v-radio-group>
-                                    <v-radio-group v-model="download_type">
+                                    <v-radio-group v-model="download_type" :disabled="download_format=='backup.json'">
                                         <v-radio
                                             label="Group data by sleeps"
                                             value="sleeps"
@@ -45,12 +49,54 @@
                                         ></v-radio>
                                     </v-radio-group>
                                     <v-btn
+                                        class="mb-3"
                                         style="width:100%"
                                         :download="download_filename+'.'+download_format"
                                         :href="download_data"
+                                        @click="downloaded_data"
                                     ><v-icon>mdi-download</v-icon>
                                         Download
                                     </v-btn>
+                                    <v-divider inset></v-divider>
+                                    <v-btn
+                                        class="mt-3 mb-3"
+                                        style="width:100%"
+                                        @click="$refs.restore_input.click()"
+                                    >
+                                        <v-icon>mdi-upload</v-icon>
+                                        Restore previous backup
+                                    </v-btn>
+                                    <input
+                                        ref="restore_input"
+                                        class="d-none"
+                                        type="file"
+                                        accept="application/json"
+                                        @change="restore"
+                                    >
+                                    <v-alert
+                                        v-if="undo_data.is_undo"
+                                        dense
+                                        outlined
+                                        type="info"
+                                    >
+                                        <a href="#undo" @click="undo">Click here to {{undo_data.redo?'redo':'undo'}} your most recent restore</a>
+                                    </v-alert>
+                                    <v-alert
+                                        v-else-if="backup_status=='recommended'"
+                                        dense
+                                        outlined
+                                        type="warning"
+                                    >
+                                        Consider downloading a backup before restoring
+                                    </v-alert>
+                                    <v-alert
+                                        v-if="backup_status=='failed'"
+                                        dense
+                                        outlined
+                                        type="error"
+                                    >
+                                        Please try again with a different file
+                                    </v-alert>
                                 </v-expansion-panel-content>
                             </v-expansion-panel>
 
@@ -186,8 +232,11 @@
                  target_time: format_time(target_timestamp),
 
                  download_filename: 'Sleep diary (' + format_date(start_time) + ' ' + format_time(start_time).replace(':','') + ')',
-                 download_format: 'csv',
+                 download_format: 'backup.json',
                  download_type: 'sleeps',
+                 backup_status: 'recommended',
+
+                 undo_data: JSON.parse(localStorage.getItem('value ' + username + ':undo-restore')||'{}'),
 
              },
 
@@ -249,7 +298,15 @@
                  },
                  download_data() {
                      var data_str = localStorage.getItem('name:'+username)||'';
-                     if ( this.download_format == 'json' ) {
+                     if ( this.download_format == 'backup.json' ) {
+                         var ret = {};
+                         Object.keys(localStorage).forEach( key => {
+                             if ( localstorage_item_regexp.test(key) && !/:undo-restore$/.test(key) ) {
+                                 ret[key] = localStorage.getItem(key);
+                             }
+                         });
+                         return 'data:application/json;base64,' + btoa(JSON.stringify(ret));
+                     } else if ( this.download_format == 'json' ) {
                          return 'data:application/json;base64,' + btoa(JSON.stringify(
                              ( this.download_type == 'sleeps' )
                              ? cook_data.to_sleeps(data_str)
@@ -281,6 +338,56 @@
                          );
                      }
                  },
+             },
+
+             methods: {
+                 downloaded_data() {
+                     if ( this.download_format == 'backup.json' ) this.backup_status = '';
+                 },
+                 restore(event) {
+                     var reader = new FileReader();
+                     reader.onload = () => {
+                         try {
+                             var restore_data = JSON.parse(reader.result);
+                             var new_undo_data = { is_undo: true, redo: false };
+                             Object.keys(localStorage).forEach( key => {
+                                 if ( localstorage_item_regexp.test(key) && !/:undo-restore$/.test(key) ) {
+                                     new_undo_data[key] = localStorage.getItem(key);
+                                     localStorage.removeItem(key);
+                                 }
+                             });
+                             Object.keys(restore_data).forEach( key => {
+                                 if ( localstorage_item_regexp.test(key) && !/:undo-restore$/.test(key) ) {
+                                     localStorage.setItem(key,restore_data[key]);
+                                 }
+                             });
+                             this.undo_data = new_undo_data;
+                             localStorage.setItem('value ' + username + ':undo-restore',JSON.stringify(this.undo_data));
+                         } catch (e) {
+                             this.backup_status = 'failed';
+                         }
+                     }
+                     reader.readAsText(event.target.files[0]);
+                 },
+                 undo(event) {
+                     event.preventDefault();
+                     var new_undo_data = { is_undo: true, redo: !this.undo_data.redo };
+                     Object.keys(localStorage).forEach( key => {
+                         if ( localstorage_item_regexp.test(key) && !/:undo-restore$/.test(key) ) {
+                             new_undo_data[key] = localStorage.getItem(key);
+                             localStorage.removeItem(key);
+                         }
+                     });
+                     Object.keys(new_undo_data).forEach( key => {
+                         if ( localstorage_item_regexp.test(key) && !/:undo-restore$/.test(key) ) {
+                             localStorage.setItem(key,this.undo_data[key]);
+                         }
+                     });
+                     this.undo_data = new_undo_data;
+                     localStorage.setItem('value ' + username + ':undo-restore',JSON.stringify(this.undo_data));
+
+                 },
+
              },
 
              watch: {
