@@ -60,3 +60,6 @@ function format_duration(duration) {
         Math.floor((duration%3600000)/  60000)  // minutes
     ]).join(':');
 }
+
+// disable Firefox's bfcache - this is the only way I can find to reload localStorage when the user presses the "back" button:
+window.onunload = function(){};
