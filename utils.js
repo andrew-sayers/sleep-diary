@@ -26,6 +26,7 @@ document.addEventListener( "visibilitychange", function() {
 });
 update_utils();
 
+// Convert e.g. "1" to "01":
 function zero_pad(values) {
     for ( var n=0; n!=values.length; ++n ) {
         if ( values[n] < 10 ) values[n] = '0' + values[n];
@@ -33,6 +34,7 @@ function zero_pad(values) {
     return values;
 }
 
+// Convert a Unix timestamp to a pretty-printed date:
 function format_date(time) {
     var date = new Date(time);
     return zero_pad([
@@ -42,6 +44,7 @@ function format_date(time) {
     ]).join('-');
 }
 
+// Convert a Unix timestamp to a pretty-printed time:
 function format_time(time) {
     var date = new Date(time);
     return zero_pad([
@@ -50,6 +53,7 @@ function format_time(time) {
     ]).join(':');
 }
 
+// Convert a duration in milliseconds to hours and minutes:
 function format_duration(duration) {
     return zero_pad([
         Math.floor( duration         /3600000), // hours
