@@ -77,27 +77,3 @@ function diary_plot(sleeps) {
     return ret + '</div>';
 
 }
-
-function day_length_plot(sleeps) {
-
-    var ret = '<div class="day-length-plot"><div class="hours" title="hour">00 01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24</div>';
-
-    sleeps = fix_sleep_data(sleeps);
-
-    for ( var n=0; n!=sleeps.length; ++n ) {
-        var sleep = sleeps[n];
-
-	var end_time = ( n == sleeps.length-1 ) ? sleep.wake_time : sleeps[n+1].sleep_time,
-	    day_duration  = end_time - sleep.sleep_time,
-	    sleep_width = sleep.sleep_duration / (1000*6*6*24),
-	      day_width =         day_duration / (1000*6*6*24),
-	     wake_title = new Date(sleep.wake_time) + " - " + new Date(end_time);
-
-	ret += '<div style=""width: '+day_width+'vw" class="day" title="'+wake_title+'"><div style="width: '+sleep_width+'vw" class="sleep '+sleep.duration_class+'" title="'+sleep.sleep_title+'"></div></div>\n';
-
-    }
-
-    return ret + '</div>';
-
-}
-
