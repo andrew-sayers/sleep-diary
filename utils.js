@@ -3,7 +3,7 @@
  * See LICENSE.txt for license information.
  */
 
-var username, start_time, day_length, target_timestamp, target_active, server_url, server_active;
+var username, start_time, day_length, target_timestamp, target_active, server_url, server_active, localstorage_item_regexp;
 
 /*
  * Update values that might be changed by another window
@@ -20,6 +20,10 @@ function update_utils() {
 
     server_url       = localStorage.getItem('value ' + username + ':server-url') || '';
     server_active    = localStorage.getItem('value ' + username + ':server-active') || false;
+
+    var username_regexp = username.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    localstorage_item_regexp = new RegExp( '^(name|sent):'+username_regexp+'$|^value '+username_regexp+':' );
+
 }
 document.addEventListener( "visibilitychange", function() {
     if ( document.visibilityState == 'visible' ) update_utils();
