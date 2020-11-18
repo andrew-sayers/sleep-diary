@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Upgrade your data</title>
+  </head>
+  <body>
+    <h1>Upgrade your data</h1>
+
+    <div id="output"></div>
+
+    <script src="cook-data.js"></script>
+    <script src="utils.js"></script>
+    <script src="../sleep-diary-toolkit/sleep-diary-toolkit.min.js"></script>
+    <script>
+      try {
+          var diary = new Diary(""),
+              prev_target = null,
+              old_diary = cook_data.parse(localStorage.getItem('name:'+username)||'');
+          old_diary.forEach( entry => {
+              if ( !!prev_target != !!entry.target ) {
+                  diary.add_entry("RETARGET",entry.now-1,entry.target);
+                  prev_target = entry.target;
+              }
+              switch ( entry.time ) {
+              case 'day':
+                  diary.add_entry("WAKE",entry.now);
+                  break;
+              case 'night':
+                  diary.add_entry("SLEEP",entry.now);
+                  break;
+              default:
+                  throw Error("Unrecognised event type: " + entry.time);
+              }
+          });
+          document.getElementById('output').innerHTML = '<a href="data:text/plain,' + encodeURIComponent(diary.serialise()) + '" download="Sleep diary (upgraded).sleep-diary">Click here to download your old sleep diary</a>';
+          console.log("Old diary:",old_diary);
+          console.log("New diary:",diary);
+      } catch (e) {
+          document.getElementById('output').innerText = 'There was an error upgrading your old data.  Please give Andrew the following error message: ' + e;
+      }
+    </script>
+
+  </body>
+</html>
